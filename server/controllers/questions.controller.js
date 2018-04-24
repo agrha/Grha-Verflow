@@ -1,34 +1,43 @@
-const Question = require('../models/question.model');
-const VoteQuestion = require('../models/voteQuestion.model');
+const questionSchema = require('../models/question.model');
+const voteQuestionSchema = require('../models/voteQuestion.model');
 const jwt = require('jsonwebtoken');
 
-
-module.exports = {
-  addQuestion: function (req, res) {
+class Question {
+  static addQuestion(req,res){
     let token = req.headers.token
     let decoded = jwt.verify(token, process.env.SECRET)
-    const questions = new Question()
-    questions.title = req.body.title
-    questions.content = req.body.content
-    questions.userId = decoded.id
-    questions.save().then( data => {
+    let obj = {
+      title:req.body.title,
+      content:req.body.content,
+      userId: decoded.id
+    }
+    questionSchema.create(obj)
+    .then(data=>{
       res.status(200).json({
         message: 'succes create question',
         data
       })
     })
-  },
-  showQuestion: function (req, res) {
-    Question.find().populate('userId').exec().then(data => {
+    .catch(err => {
+      res.status(500).json({
+        message: 'something went wrong',
+        err
+      })
+    })
+  }
+
+  static showQuestion(req,res){
+    questionSchema.find().populate('userId').exec().then(data => {
       res.status(200).json({
         message: 'list question',
         data
       })
     })
-  },
-  showOne: function (req, res) {
+  }
+
+  static showOne(req,res){
     console.log(req.params.id);
-    Question.findOne({
+    questionSchema.findOne({
       _id: req.params.id
     }).populate('userId').exec().then(data => {
       res.status(200).json({
@@ -36,13 +45,14 @@ module.exports = {
         data
       })
     })
-  },
-  upVote: function (req, res) {
+  }
+
+  static upVote(req,res){
     console.log(req.headers);
     console.log(req.body);
     let token = req.headers.token
     let decoded = jwt.verify(token, process.env.SECRET)
-    VoteQuestion.findOne({
+    voteQuestionSchema.findOne({
       userId: decoded.id,
       questionId: req.body.questionId
     }).then(data => {
@@ -75,22 +85,31 @@ module.exports = {
         })
       }
     })
-  },
-  showVote: function (req, res) {
-    console.log(req.headers);
-    VoteQuestion.findOne({
+  }
+  
+  static showVote(req,res){
+    // console.log(req.headers);
+    console.log(req.headers.questionid)
+    voteQuestionSchema.findOne({
       questionId: req.headers.questionid
     })
     .then(data => {
       res.status(200).json({
-        message:'HAHA',
+        message:'votes found',
         data
       })
     })
-  },
-  downVote: function (req, res) {
+    .catch(err =>{
+      res.status(500).json({
+        message:'something went wrong',
+        err
+      })
+    })
+  }
+
+  static downVote(req,res) {
     console.log(req.headers);
-    VoteQuestion.findOne({
+    voteQuestionSchema.findOne({
       questionId: req.headers.questionid
     }).then(datas => {
       let updateVote = datas.vote - 1
@@ -108,4 +127,22 @@ module.exports = {
       })
     })
   }
-};
+  
+  static delete(req,res){
+    questionSchema.findByIdAndRemove(req.params.id)
+    .then(data => {
+      res.status(200).json({
+        message: 'success deleting data',
+        data
+      })
+    })
+    .catch(err=>{
+      res.status(500).json({
+        message:'something went wrong',
+        err
+      })
+    })
+  }
+}
+
+module.exports = Question
