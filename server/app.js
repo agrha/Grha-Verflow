@@ -5,14 +5,14 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
-var bcrypt = require('bcrypt');
+var bcryptjs = require('bcryptjs');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var overflowsRouter = require('./routes/overflow')
 
 const cors = require('cors');
 const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/overflow', (err) => {
+mongoose.connect('mongodb://agrha:daun10lembar@ds155699.mlab.com:55699/overflow', (err) => {
   if (!err) {
     console.log('connect to Database');
   }

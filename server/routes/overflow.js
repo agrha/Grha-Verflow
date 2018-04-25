@@ -9,9 +9,13 @@ router.get('/question', Question.showQuestion);
 router.get('/question/:id', Question.showOne);
 router.post('/answer', Answer.addAnswer);
 router.get('/answer', Answer.showAnswer);
-router.post('/votequestion', Question.upVote);
+router.put('/votequestion', Question.upVote);
 router.get('/votequestions', Question.showVote);
-router.get('/votequestiondown', Question.downVote);
+router.put('/votequestiondown', Question.downVote);
 router.delete('/:id', Question.delete);
+router.delete('/answer/:id', Answer.delete)
+router.get('/voteanswers',Answer.showVoteAnswer)
+router.put('/voteanswer', Answer.upVote)
+router.put('/voteanswerdown', Answer.downVote)
 
 module.exports = router;

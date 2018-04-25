@@ -3,20 +3,18 @@
     <div class="row">
       <div class="jumbotron jumbotron-fluid col-md-8 offset-md-2">
         <div class="container">
-          <button type="button" name="button" class="btn btn-danger" style="float: right" @click="downVote">
+          <button type="button" name="button" class="btn btn-danger" @click="downVoteQuestion(questionId)">
             Unlike
           </button>
-          <button type="button" name="button" class="btn btn-outline-dark" style="float: right">{{vote}}</button>
-          <button type="button" name="button" class="btn btn-success" style="float: right" @click="upVote">
+          <button type="button" name="button" class="btn btn-outline-dark">{{votes[0].vote}}</button>
+          <button type="button" name="button" class="btn btn-success" @click="upVoteQuestion(questionId)">
             Like
           </button>
-          <h1 class="display-4">{{question.title}}</h1>
-          <div class="">
-          </div>
+            <h1 style="margin-top:10px"><strong><span class="badge badge-secondary">{{question.title}}</span></strong></h1>
           <p class="lead">{{question.content}}</p>
         </div>
         <blockquote class="blockquote mb-0">
-          <footer class="blockquote-footer">Asked by: <cite title="Source Title">{{question.userId.name}}</cite></footer>
+          <footer class="blockquote-footer">Asked by: <cite title="Source Title">{{question.userId.name||name}}</cite></footer>
         </blockquote>
         <div class="container">
           <div class="form-group">
@@ -29,14 +27,7 @@
         <h5>Answers:</h5>
         <!-- <h5>{{answers}}</h5> -->
         <div class="container">
-          <div class="card" v-for="(data, index) in answers" :key="index" style="margin-bottom: 17px;">
-            <div class="card-body">
-              {{data.content}}
-            </div>
-            <blockquote class="blockquote mb-0">
-              <footer class="blockquote-footer">Answered by: <cite title="Source Title">{{data.userId.name}}</cite></footer>
-            </blockquote>
-          </div>
+          <Answer v-for="(answer,index) in answers" :key="index" :answer="answer"></Answer>
         </div>
       </div>
     </div>
@@ -44,19 +35,25 @@
 </template>
 
 <script>
-import {mapActions, mapGetters} from 'vuex'
-import axios from 'axios'
+import Answer from '@/components/Answer'
+import {mapActions, mapGetters, mapState} from 'vuex'
 export default {
+  components: {
+    Answer
+  },
   data () {
     return {
+      name: localStorage.getItem('name'),
       token: localStorage.getItem('token'),
-      id: this.$route.params,
+      questionId: this.$route.params.id,
       content: '',
-      vote: '',
       url: 'http://localhost:3000'
     }
   },
   computed: {
+    ...mapState([
+      'votes'
+    ]),
     ...mapGetters([
       'question',
       'answers'
@@ -74,7 +71,9 @@ export default {
       'getOneQuestion',
       'fetchAnswers',
       'fetchVotes',
-      'addAnswer'
+      'addAnswer',
+      'upVoteQuestion',
+      'downVoteQuestion'
     ]),
     getQuestion () {
       this.getOneQuestion(this.$route.params.id)
@@ -85,36 +84,6 @@ export default {
         content: this.content
       }
       this.addAnswer(obj)
-    },
-    upVote: function () {
-      axios({
-        method: 'post',
-        url: 'http://localhost:3000/api/votequestion',
-        headers: {
-          token: this.token
-        },
-        data: {
-          questionId: this.id.id
-        }
-      }).then(({ data }) => {
-        console.log(data)
-        this.showVote()
-      })
-    },
-    showVote: function () {
-
-    },
-    downVote: function () {
-      axios({
-        method: 'get',
-        url: 'http://localhost:3000/api/votequestiondown',
-        headers: {
-          token: this.token,
-          questionId: this.id.id
-        }
-      }).then(({ data }) => {
-        this.showVote()
-      })
     }
   }
 }

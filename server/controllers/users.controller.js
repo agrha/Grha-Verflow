@@ -1,13 +1,13 @@
 const userSchema = require('../models/users.model');
-const bcrypt = require('bcrypt');
+const bcryptjs = require('bcryptjs');
 const saltRounds = 10;
 const jwt = require('jsonwebtoken');
 
 
 class User{
   static signUp(req,res){
-    const salt = bcrypt.genSaltSync(saltRounds);
-    const password = bcrypt.hashSync(req.body.password, salt);
+    const salt = bcryptjs.genSaltSync(saltRounds);
+    const password = bcryptjs.hashSync(req.body.password, salt);
     let obj = {
       name:req.body.name,
       email:req.body.email,
@@ -35,7 +35,7 @@ class User{
     userSchema.findOne(target)
     .then(data=>{
       if(data) {
-        let clarify = bcrypt.compareSync(req.body.password, data.password)
+        let clarify = bcryptjs.compareSync(req.body.password, data.password)
         if(clarify){
           let token = jwt.sign({id: data._id, name: data.name}, process.env.SECRET)
           res.status(200).json({

@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const voteanswerSchema = new Schema({
+const voteAnswerSchema = new Schema({
   userId: {
     type: Schema.Types.ObjectId,
     ref: 'User'
@@ -13,4 +13,4 @@ const voteanswerSchema = new Schema({
   vote: Number
 });
 
-module.exports = mongoose.model('VoteAnswer', voteanswerSchema);
+module.exports = mongoose.model('VoteAnswer', voteAnswerSchema);

@@ -48,48 +48,60 @@ class Question {
   }
 
   static upVote(req,res){
-    console.log(req.headers);
-    console.log(req.body);
+    // console.log(req.headers.token);
+    // console.log(req.body.questionId);
     let token = req.headers.token
     let decoded = jwt.verify(token, process.env.SECRET)
     voteQuestionSchema.findOne({
       userId: decoded.id,
       questionId: req.body.questionId
     }).then(data => {
-      res.status(200).json({
-        data
-      })
+      console.log(data)
       if (data) {
-        let updateVote = data.vote + 1
-        VoteQuestion.updateOne({
-          userId: decoded.id,
-          questionId: req.body.questionId
-        },{
-          $set:{
-            vote: updateVote
-          }
-        }).then(datas => {
+        data.userId = data.userId,
+        data.questionId = data.questionId
+        data.vote += 1
+        data.save()
+        .then(votedData => {
           res.status(200).json({
-            datas
+            votedData
+          })
+        })
+        .catch(err => {
+          res.status(500).json({
+            message: 'something went wrong',
+            err
           })
         })
       } else {
-        const voteq = new VoteQuestion()
-        voteq.userId = decoded.id
-        voteq.questionId = req.body.questionId
-        voteq.vote = 1
-        voteq.save().then(data_vote => {
+        let obj = {
+          userId: decoded.id,
+          questionId: req.body.questionId,
+          vote: 1
+        }
+        voteQuestionSchema.create(obj)
+        .then(votedData => {
           res.status(200).json({
-            data_vote
+            votedData
+          })
+        })
+        .catch(err => {
+          res.status(500).json({
+            message: 'something went wrong',
+            err
           })
         })
       }
     })
+    .catch(err => {
+      res.status(500).json({
+        message: 'something went wrong',
+        data
+      })
+    })
   }
   
   static showVote(req,res){
-    // console.log(req.headers);
-    console.log(req.headers.questionid)
     voteQuestionSchema.findOne({
       questionId: req.headers.questionid
     })
@@ -109,21 +121,26 @@ class Question {
 
   static downVote(req,res) {
     console.log(req.headers);
+    let token = req.headers.token
+    let decoded = jwt.verify(token, process.env.SECRET)
     voteQuestionSchema.findOne({
-      questionId: req.headers.questionid
-    }).then(datas => {
-      let updateVote = datas.vote - 1
-      VoteQuestion.updateOne({
-        questionId: req.headers.questionid
-      },{
-        $set: {
-          vote: updateVote
-        }
-      }).then(data => {
+      userId: decoded.id,
+      questionId: req.body.questionId
+    }).then(data => {
+      data.userId = data.userId,
+      data.questionId = data.questionId
+      data.vote -= 1
+      data.save()
+      .then(votedData => {
         res.status(200).json({
-          message: 'min vote',
-          data
+          message: 'succes downvote',
+          votedData
         })
+      })
+    })
+    .catch(err => {
+      res.status(500).json({
+        message:'vote is not found'
       })
     })
   }

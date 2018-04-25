@@ -22,6 +22,9 @@ const getters = {
   },
   answers: state => {
     return state.answers
+  },
+  votes: state => {
+    return state.votes
   }
 }
 
@@ -37,8 +40,8 @@ const actions = {
       })
   },
   editQuestion ({commit}, payload) {
-    console.log('masuk edit blog')
-    console.log(payload)
+    // console.log('masuk edit')
+    // console.log(payload)
     state.loadingEdit = true
     axios.put(`${url}/blogs/${payload.id}`, payload.formData, {headers: {token: localStorage.getItem('token')}})
       .then(response => {
@@ -79,7 +82,7 @@ const actions = {
       .then(response => {
         swal({
           title: 'Are you sure?',
-          text: 'You will delete this article',
+          text: 'You will delete this question',
           type: 'warning',
           showCancelButton: true,
           confirmButtonColor: '#3085d6',
@@ -101,7 +104,7 @@ const actions = {
       })
   },
   getOneQuestion ({commit}, obj) {
-    console.log(obj)
+    // console.log(obj)
     axios.get(`${url}/overflows/question/${obj}`)
       .then(response => {
         console.log(response.data.data)
@@ -122,10 +125,11 @@ const actions = {
     axios.get(`${url}/overflows/votequestions`, {headers: {questionid: payload}})
       .then(response => {
         console.log('ini hasil fetchvotes', response.data.data)
+        commit('fetchVotes', response.data.data)
       })
   },
   addAnswer ({commit}, payload) {
-    console.log(payload)
+    // console.log(payload)
     let obj = {
       questionId: payload.questionId,
       content: payload.content
@@ -137,6 +141,60 @@ const actions = {
       })
       .catch(err => {
         console.log(err.message)
+      })
+  },
+  upVoteQuestion ({commit}, payload) {
+    // console.log(payload)
+    let obj = {
+      questionId: payload
+    }
+    axios.put(`${url}/overflows/votequestion`, obj, {headers: {token: localStorage.getItem('token')}})
+      .then(response => {
+        console.log(response.data.votedData)
+        commit('updateVoteQuestion', response.data.votedData)
+      })
+      .catch(err => {
+        console.log(err)
+      })
+  },
+  downVoteQuestion ({commit}, payload) {
+    // console.log(payload)
+    let obj = {
+      questionId: payload
+    }
+    axios.put(`${url}/overflows/votequestiondown`, obj, {headers: {token: localStorage.getItem('token')}})
+      .then(response => {
+        console.log(response.data.votedData)
+        commit('updateVoteQuestion', response.data.votedData)
+      })
+      .catch(err => {
+        console.log(err)
+      })
+  },
+  deleteAnswer ({commit}, obj) {
+    axios.delete(`${url}/overflows/answer/${obj}`, {headers: {token: localStorage.getItem('token')}})
+      .then(response => {
+        swal({
+          title: 'Are you sure?',
+          text: 'You will delete this answer',
+          type: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Delete'
+        }).then(result => {
+          if (result.value) {
+            swal(
+              'Delete Blog Success',
+              `${response.data.data.title} is deleted`,
+              'success'
+            )
+            commit('deleteAnswer', obj)
+          }
+        })
+      })
+      .catch(err => {
+        console.log('error when deleting article', err)
       })
   }
 }
@@ -152,6 +210,16 @@ const mutations = {
   fetchAnswers (state, payload) {
     state.answers = payload
   },
+  fetchVotes (state, payload) {
+    if (payload) {
+      state.votes = []
+      state.votes.push(payload)
+    } else {
+      state.votes = [{
+        vote: 0
+      }]
+    }
+  },
   addData (state, payload) {
     // console.log('ini mutations', payload)
     state.questions.push(payload)
@@ -159,9 +227,12 @@ const mutations = {
   addAnswer (state, payload) {
     state.answers.push(payload)
   },
+  updateVoteQuestion (state, payload) {
+    state.votes.splice(0, 1, payload)
+  },
   editData (state, payload) {
     console.log(payload)
-    let index = state.articles.findIndex(blog => blog._id === payload.id)
+    let index = state.articles.findIndex(question => question._id === payload.id)
     console.log(index)
     state.articles.splice(index, 1, payload)
   },
@@ -169,6 +240,13 @@ const mutations = {
     state.questions.map((data, index) => {
       if (payload === data._id) {
         state.questions.splice(index, 1)
+      }
+    })
+  },
+  deleteAnswer (state, payload) {
+    state.answers.map((data, index) => {
+      if (payload === data._id) {
+        state.answers.splice(index, 1)
       }
     })
   }
